@@ -5,9 +5,9 @@
 
 // --> General settings
 $hesk_settings['site_title']='Website';
-$hesk_settings['site_url']='http://localhost:8080';
+$hesk_settings['site_url']='http://localhost:8081';
 $hesk_settings['hesk_title']='Help Desk';
-$hesk_settings['hesk_url']='http://localhost:8080';
+$hesk_settings['hesk_url']='http://localhost:8081';
 $hesk_settings['webmaster_mail']='support@example.com';
 $hesk_settings['site_theme']='hesk3';
 $hesk_settings['admin_css']=0;
@@ -24,9 +24,9 @@ $hesk_settings['languages']=array(
 
 // --> Database settings
 $hesk_settings['db_host']='hesk-db';
-$hesk_settings['db_name']='test-db';
-$hesk_settings['db_user']='user';
-$hesk_settings['db_pass']='password';
+$hesk_settings['db_name']='hesk_db';
+$hesk_settings['db_user']='hesk_user';
+$hesk_settings['db_pass']='hesk_password';
 $hesk_settings['db_pfix']='hesk_';
 
 
@@ -103,8 +103,8 @@ $hesk_settings['recaptcha_use']=0;
 $hesk_settings['recaptcha_public_key']='';
 $hesk_settings['recaptcha_private_key']='';
 $hesk_settings['question_use']=0;
-$hesk_settings['question_ask']='Which of these is not an animal: cow, fish, computer';
-$hesk_settings['question_ans']='computer';
+$hesk_settings['question_ask']='What color is snow? (give a 1 word answer to show you are a human)';
+$hesk_settings['question_ans']='white';
 
 // --> Security
 $hesk_settings['attempt_limit']=6;
@@ -115,7 +115,7 @@ $hesk_settings['email_view_ticket']=1;
 $hesk_settings['x_frame_opt']=1;
 $hesk_settings['samesite']='Lax';
 $hesk_settings['force_ssl']=0;
-$hesk_settings['url_key']='5.jjbNrKtaTmK34N3_UFErhJXmHXZE';
+$hesk_settings['url_key']='KJRNh._4dvbb6AYVBWJ6BarhhqNcpa';
 $hesk_settings['require_mfa']=0;
 $hesk_settings['require_mfa_customers']=0;
 $hesk_settings['elevator_duration']='60M';

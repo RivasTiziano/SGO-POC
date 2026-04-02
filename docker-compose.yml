@@ -1,26 +1,66 @@
 services:
+  # --- HESK (MySQL 8.0) ---
   hesk-db:
     container_name: hesk-db
-    image: mysql:9.0
+    image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: ${HESK_DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${HESK_DB_NAME}
-      MYSQL_USER: ${HESK_DB_USER}
-      MYSQL_PASSWORD: ${HESK_DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${HESK_DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${HESK_DB_NAME}
+      - MYSQL_USER=${HESK_DB_USER}
+      - MYSQL_PASSWORD=${HESK_DB_PASSWORD}
     volumes:
-      - mysql_data:/var/lib/mysql
-    
-  hesk-app:
-    container_name: hesk-app
+      - hesk-db-data:/var/lib/mysql
+
+  hesk-web:
+    container_name: hesk-web
     build: ./hesk-docker
+    env_file: .env
     ports:
-      - "8080:80"
+      - "8081:80"
     volumes:
       - ./hesk:/var/www/html
     depends_on:
       - hesk-db
 
+  # --- ZABBIX (PostgreSQL 16 + Versión 6.0 LTS) ---
+  zabbix-db:
+    container_name: zabbix-db
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - zabbix-db-data:/var/lib/postgresql/data
+
+  zabbix-server:
+    container_name: zabbix-server
+    image: zabbix/zabbix-server-pgsql:alpine-6.0-latest
+    env_file: .env
+    ports:
+      - "10051:10051"
+    depends_on:
+      - zabbix-db
+
+  zabbix-web:
+    container_name: zabbix-web
+    image: zabbix/zabbix-web-apache-pgsql:alpine-6.0-latest
+    env_file: .env
+    ports:
+      - "80:8080"
+    depends_on:
+      - zabbix-db
+      - zabbix-server
+
+  zabbix-agent:
+    container_name: zabbix-agent
+    image: zabbix/zabbix-agent:alpine-6.0-latest
+    env_file: .env
+    environment:
+      - ZBX_SERVER_HOST=${ZBX_SERVER_HOST}
+    ports:
+      - "10050:10050"
+
 volumes:
-  mysql_data:
-
-
+  zabbix-db-data:
+  hesk-db-data:
