@@ -1,5 +1,5 @@
 services:
-  # --- HESK (MySQL 8.0) ---
+  # --- HESK ---
   hesk-db:
     container_name: hesk-db
     image: mysql:8.0
@@ -12,6 +12,12 @@ services:
       - hesk-db-data:/var/lib/mysql
     networks:
       - hesk-back
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   hesk-web:
     container_name: hesk-web
@@ -22,12 +28,18 @@ services:
     volumes:
       - ./hesk:/var/www/html
     depends_on:
-      - hesk-db
+      hesk-db:
+        condition: service_healthy
     networks:
       - hesk-back
       - hesk-front
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/admin/index.php?a=login"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
-  # --- ZABBIX (PostgreSQL 16 + Versión 6.0 LTS) ---
+  # --- ZABBIX (Actualmente con Postgres; el requisito pide MySQL/MariaDB [cite: 49]) ---
   zabbix-db:
     container_name: zabbix-db
     image: postgres:16-alpine
@@ -38,24 +50,40 @@ services:
     volumes:
       - zabbix-db-data:/var/lib/postgresql/data
     networks:
-      - zabbix-back    
+      - zabbix-back
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   zabbix-agent:
     container_name: zabbix-agent
     image: zabbix/zabbix-agent:alpine-6.0-latest
     env_file: .env
     networks:
-      - zabbix-back    
+      - zabbix-back
+    healthcheck:
+      test: ["CMD", "zabbix_agentd", "-t", "agent.ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   zabbix-server:
     container_name: zabbix-server
     image: zabbix/zabbix-server-pgsql:alpine-6.0-latest
     env_file: .env
     depends_on:
-      - zabbix-db
+      zabbix-db:
+        condition: service_healthy
     networks:
       - zabbix-back
-      - zabbix-front    
+      - zabbix-front
+    healthcheck:
+      test: ["CMD", "zabbix_server", "-V"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   zabbix-web:
     container_name: zabbix-web
@@ -64,11 +92,18 @@ services:
     ports:
       - "80:8080"
     depends_on:
-      - zabbix-db
-      - zabbix-server
+      zabbix-db:
+        condition: service_healthy
+      zabbix-server:
+        condition: service_started
     networks:
       - zabbix-back
-      - zabbix-front    
+      - zabbix-front
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 networks:
   hesk-front:
