@@ -1,0 +1,26 @@
+services:
+  hesk-db:
+    container_name: hesk-db
+    image: mysql:9.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${HESK_DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${HESK_DB_NAME}
+      MYSQL_USER: ${HESK_DB_USER}
+      MYSQL_PASSWORD: ${HESK_DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    
+  hesk-app:
+    container_name: hesk-app
+    build: ./hesk-docker
+    ports:
+      - "8080:80"
+    volumes:
+      - ./hesk:/var/www/html
+    depends_on:
+      - hesk-db
+
+volumes:
+  mysql_data:
+
+
