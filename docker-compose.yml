@@ -10,6 +10,8 @@ services:
       - MYSQL_PASSWORD=${HESK_DB_PASSWORD}
     volumes:
       - hesk-db-data:/var/lib/mysql
+    networks:
+      - hesk-back
 
   hesk-web:
     container_name: hesk-web
@@ -21,6 +23,9 @@ services:
       - ./hesk:/var/www/html
     depends_on:
       - hesk-db
+    networks:
+      - hesk-back
+      - hesk-front
 
   # --- ZABBIX (PostgreSQL 16 + Versión 6.0 LTS) ---
   zabbix-db:
@@ -32,15 +37,25 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - zabbix-db-data:/var/lib/postgresql/data
+    networks:
+      - zabbix-back    
+
+  zabbix-agent:
+    container_name: zabbix-agent
+    image: zabbix/zabbix-agent:alpine-6.0-latest
+    env_file: .env
+    networks:
+      - zabbix-back    
 
   zabbix-server:
     container_name: zabbix-server
     image: zabbix/zabbix-server-pgsql:alpine-6.0-latest
     env_file: .env
-    ports:
-      - "10051:10051"
     depends_on:
       - zabbix-db
+    networks:
+      - zabbix-back
+      - zabbix-front    
 
   zabbix-web:
     container_name: zabbix-web
@@ -51,15 +66,22 @@ services:
     depends_on:
       - zabbix-db
       - zabbix-server
+    networks:
+      - zabbix-back
+      - zabbix-front    
 
-  zabbix-agent:
-    container_name: zabbix-agent
-    image: zabbix/zabbix-agent:alpine-6.0-latest
-    env_file: .env
-    environment:
-      - ZBX_SERVER_HOST=${ZBX_SERVER_HOST}
-    ports:
-      - "10050:10050"
+networks:
+  hesk-front:
+    driver: bridge
+  hesk-back:
+    driver: bridge
+    internal: true
+
+  zabbix-front:
+    driver: bridge
+  zabbix-back:
+    driver: bridge
+    internal: true
 
 volumes:
   zabbix-db-data:
