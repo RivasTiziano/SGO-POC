@@ -2,21 +2,23 @@ name: CI/CD HESK Categories
 on:
   push:
     paths:
-      - 'categories.txt'
+      - 'categories.txt' # Trigger
 
 jobs:
   deploy:
-    runs-on: self-hosted 
+    runs-on: self-hosted # Corre local
     steps:
-      - name: Checkout code
+      - name: Checkout code # Se baja el codigo del repo para que el runner pueda leerlo
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js # Instala node solamente para correr el script de CI (sync_categories.js)
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Sync Categories
+      - name: Sync Categories 
+      # Ejecuta el script pero le define previamente las variables de entorno.
+      # Las copia de github -> variables de entorno del runner -> las consume el script
         env:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASS: ${{ secrets.DB_PASS }}
