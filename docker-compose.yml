@@ -17,7 +17,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 10m
 
   hesk-web:
     container_name: hesk-web
@@ -39,23 +39,25 @@ services:
       timeout: 5s
       retries: 3
 
-  # --- ZABBIX (Actualmente con Postgres; el requisito pide MySQL/MariaDB [cite: 49]) ---
+  # --- ZABBIX ---
   zabbix-db:
     container_name: zabbix-db
-    image: postgres:16-alpine
+    image: mysql:8.0
     environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${ZABBIX_DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${ZABBIX_DB_NAME}
+      - MYSQL_USER=${ZABBIX_DB_USER}
+      - MYSQL_PASSWORD=${ZABBIX_DB_PASSWORD}
     volumes:
-      - zabbix-db-data:/var/lib/postgresql/data
+      - zabbix-db-data:/var/lib/mysql
     networks:
       - zabbix-back
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10m
 
   zabbix-agent:
     container_name: zabbix-agent
@@ -71,7 +73,7 @@ services:
 
   zabbix-server:
     container_name: zabbix-server
-    image: zabbix/zabbix-server-pgsql:alpine-6.0-latest
+    image: zabbix/zabbix-server-mysql:alpine-6.0-latest
     env_file: .env
     depends_on:
       zabbix-db:
@@ -87,7 +89,7 @@ services:
 
   zabbix-web:
     container_name: zabbix-web
-    image: zabbix/zabbix-web-apache-pgsql:alpine-6.0-latest
+    image: zabbix/zabbix-web-apache-mysql:alpine-6.0-latest
     env_file: .env
     ports:
       - "80:8080"
