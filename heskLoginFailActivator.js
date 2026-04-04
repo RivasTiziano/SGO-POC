@@ -30,8 +30,8 @@ rl.on('line', (input) => {
         case '1':
             console.log("Restaurando...");
             run(`docker start ${container}`);
-            run(`docker exec ${container} mv ${filePath}.bak ${filePath}`);
             run(`docker exec ${container} sed -i '/sleep(3);/d' /var/www/html/admin/index.php`);
+            run(`docker exec ${container} mv ${filePath}.bak ${filePath}`);
             break;
         case '2':
             console.log("Simulando Error 404...");
